@@ -34,4 +34,3 @@ Run the App
    ```
 4. **Merge to Main**: After pushing, a team member will review and merge your changes into the main branch.
 
-```
