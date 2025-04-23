@@ -1,17 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'signup.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(BuggedOutApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
+class BuggedOutApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
+      title: 'BuggedOut 🐛',
+      theme: ThemeData(
+        primarySwatch: Colors.green,
+      ),
+      home: LoginPage(), // <- Start from LoginPage
       debugShowCheckedModeBanner: false,
-      home: LoginPage(),
     );
   }
 }
@@ -24,21 +28,27 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _usernameOrEmailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  String? _greeting;
+  String? _message;
 
-  void _handleLogin() {
-    final username = _usernameController.text.trim();
-    final password = _passwordController.text;
+  Future<void> _handleLogin() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedEmail = prefs.getString('email');
+    final savedUsername = prefs.getString('name');
+    final savedPassword = prefs.getString('password');
 
-    if (username.isNotEmpty && password.isNotEmpty) {
-      setState(() {
-        _greeting = "Welcome, $username!";
-      });
+    final entered = _usernameOrEmailController.text.trim();
+    final enteredPassword = _passwordController.text;
+
+    if ((entered == savedEmail || entered == savedUsername) && enteredPassword == savedPassword) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Welcome, $savedUsername!")),
+      );
+      // TODO: Navigate to next screen here
     } else {
       setState(() {
-        _greeting = "Please enter both username and password.";
+        _message = "Invalid credentials. Try again.";
       });
     }
   }
@@ -48,48 +58,67 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: Center(
-        child: Padding(
+        child: Container(
+        width: 400,
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('PestGuard',
-                  style: TextStyle(fontSize: 30, color: Colors.green)),
-              const SizedBox(height: 20),
+              Text('BuggedOut 🐛', style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold, color: Colors.green)),
+              SizedBox(height: 20),
               TextField(
-                controller: _usernameController,
-                style: TextStyle(color: Colors.black),
+                controller: _usernameOrEmailController,
                 decoration: InputDecoration(
-                  labelText: 'Username',
-                  labelStyle: TextStyle(color: Colors.black),
+                  labelText: 'Email or Username',
                   border: OutlineInputBorder(),
                 ),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
               TextField(
                 controller: _passwordController,
                 obscureText: true,
-                style: TextStyle(color: Colors.black),
                 decoration: InputDecoration(
                   labelText: 'Password',
-                  labelStyle: TextStyle(color: Colors.black),
                   border: OutlineInputBorder(),
                 ),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _handleLogin,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                  minimumSize: Size(double.infinity, 60),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  textStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
                 child: Text('Login'),
               ),
-              const SizedBox(height: 20),
-              if (_greeting != null)
-                Text(
-                  _greeting!,
-                  style: TextStyle(color: Colors.black, fontSize: 18),
-                )
+              SizedBox(height: 12),
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => SignUp()),
+                  );
+                },
+                child: Text("Don't have an account? Sign up"),
+              ),
+              if (_message != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 20),
+                  child: Text(
+                    _message!,
+                    style: TextStyle(color: Colors.redAccent, fontSize: 16),
+                  ),
+                ),
             ],
           ),
         ),
+      ),
       ),
     );
   }
