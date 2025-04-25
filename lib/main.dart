@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'signup.dart';
+import 'MainPage.dart';
 
 void main() {
   runApp(BuggedOutApp());
@@ -45,13 +46,25 @@ class _LoginPageState extends State<LoginPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Welcome, $savedUsername!")),
       );
-      // TODO: Navigate to next screen here
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => MainPage(username: savedUsername ?? "User"),
+        ),
+      );
     } else {
       setState(() {
         _message = "Invalid credentials. Try again.";
       });
+
+      Future.delayed(Duration(seconds: 5), () {
+        setState(() {
+          _message = null;
+        });
+      });
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
